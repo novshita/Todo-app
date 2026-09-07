@@ -117,6 +117,18 @@
             transform: translateY(0);
         }
 
+        /* ── Search ── */
+        .search-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-form input[type="text"] {
+            flex: 1;
+        }
+
         /* ── Task list ── */
         ul {
             list-style: none;
@@ -440,6 +452,13 @@
             </div>
         </form>
 
+        <form class="search-form" action="/" method="GET">
+            <input type="text" name="q" placeholder="🔍 Search tasks..." value="{{ query }}">
+            {% if query %}
+            <a class="cancel" href="/" title="Clear search">✕</a>
+            {% endif %}
+        </form>
+
         {% if tasks %}
         {% set done_count = tasks | selectattr("done") | list | length %}
         <p class="count">{{ tasks|length - done_count }} pending · {{ done_count }} done</p>
@@ -457,7 +476,7 @@
                     <form class="edit-form" action="/edit/{{ task.id }}" method="POST">
                         <input type="text" name="text" value="{{ task.text }}" required autofocus>
                         <button type="submit" class="btn-save">Save</button>
-                        <a class="cancel" href="/" title="Cancel">✕</a>
+                        <a class="cancel" href="/{% if query %}?q={{ query }}{% endif %}" title="Cancel">✕</a>
                     </form>
                     {% else %}
                     <div class="task-body">
@@ -472,7 +491,7 @@
                         </div>
                     </div>
                     <div class="actions">
-                        <a class="edit" href="/?edit={{ task.id }}" title="Edit">✎</a>
+                        <a class="edit" href="/?edit={{ task.id }}{% if query %}&q={{ query }}{% endif %}" title="Edit">✎</a>
                         <a class="delete" href="/delete/{{ task.id }}" title="Delete">✕</a>
                     </div>
                     {% endif %}
@@ -502,8 +521,13 @@
         </ul>
         {% else %}
         <div class="empty">
+            {% if query %}
+            <span>🔍</span>
+            No tasks match "{{ query }}"
+            {% else %}
             <span>🎉</span>
             Nothing to do yet — add your first task!
+            {% endif %}
         </div>
         {% endif %}
     </div>

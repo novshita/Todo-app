@@ -50,14 +50,21 @@ def serialize_subtasks(subtasks):
 @app.route("/")
 def index():
     edit_id = request.args.get("edit", type=int, default=-1)
+    query = request.args.get("q", "").strip()
     with get_db() as conn:
-        task_rows = conn.execute("SELECT * FROM tasks ORDER BY id").fetchall()
+        if query:
+            task_rows = conn.execute(
+                "SELECT * FROM tasks WHERE text LIKE ? ORDER BY id",
+                (f"%{query}%",)
+            ).fetchall()
+        else:
+            task_rows = conn.execute("SELECT * FROM tasks ORDER BY id").fetchall()
         tasks = []
         for row in task_rows:
             task_dict = dict(row)
             task_dict["subtasks"] = parse_subtasks(task_dict["subtasks"])
             tasks.append(task_dict)
-    return render_template("index.html", tasks=tasks, edit_id=edit_id)
+    return render_template("index.html", tasks=tasks, edit_id=edit_id, query=query)
 
 
 @app.route("/add", methods=["POST"])

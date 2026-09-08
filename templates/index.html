@@ -12,38 +12,62 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --blush: #FFDBDA;
+            --rose: #DB7F8E;
+            --slate: #D5C5C8;
+            --steel: #9DA3A4;
+            --taupe: #604D53;
+        }
+
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5a7e0, #a78bfa, #67e8f9);
+            position: relative;
+            background-color: var(--blush);
+            background-image: radial-gradient(rgba(219, 127, 142, 0.35) 1.6px, transparent 1.6px);
+            background-size: 24px 24px;
             display: flex;
             align-items: flex-start;
             justify-content: center;
             font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 40px 20px;
+            padding: 40px 20px 90px;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 46px;
+            background: repeating-linear-gradient(90deg, #fff7f0 0 26px, var(--taupe) 26px 30px);
+            box-shadow: 0 -2px 10px rgba(96, 77, 83, 0.25);
         }
 
         .card {
+            position: relative;
+            z-index: 1;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 36px;
             width: 100%;
             max-width: 520px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 32px rgba(96, 77, 83, 0.2);
         }
 
         h1 {
             text-align: center;
             font-size: 2rem;
             margin-bottom: 8px;
-            background: linear-gradient(90deg, #e879f9, #818cf8, #22d3ee);
+            background: linear-gradient(90deg, var(--rose), var(--taupe));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .subtitle {
             text-align: center;
-            color: #94a3b8;
+            color: var(--steel);
             font-size: 0.9rem;
             margin-bottom: 28px;
         }
@@ -66,7 +90,7 @@
         select {
             padding: 10px 14px;
             font-size: 14px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--slate);
             border-radius: 50px;
             outline: none;
             transition: border-color 0.2s;
@@ -82,7 +106,7 @@
         input[type="text"]:focus,
         input[type="date"]:focus,
         select:focus {
-            border-color: #a78bfa;
+            border-color: var(--rose);
         }
 
         select {
@@ -98,19 +122,19 @@
             padding: 10px 20px;
             font-size: 15px;
             font-weight: bold;
-            background: linear-gradient(135deg, #e879f9, #818cf8);
+            background: linear-gradient(135deg, var(--rose), var(--taupe));
             color: white;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             transition: transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+            box-shadow: 0 4px 12px rgba(219, 127, 142, 0.4);
             white-space: nowrap;
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(167, 139, 250, 0.5);
+            box-shadow: 0 6px 16px rgba(219, 127, 142, 0.5);
         }
 
         button:active {
@@ -142,7 +166,7 @@
             margin-bottom: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
             transition: transform 0.15s, box-shadow 0.15s;
-            border-left: 5px solid #e2e8f0;
+            border-left: 5px solid var(--slate);
         }
 
         li:hover {
@@ -171,7 +195,7 @@
         /* ── Toggle checkbox ── */
         a.toggle {
             background: none;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--slate);
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -187,12 +211,12 @@
         }
 
         a.toggle:hover {
-            border-color: #a78bfa;
-            background: #f5f3ff;
+            border-color: var(--rose);
+            background: #fdf1ef;
         }
 
         a.toggle.checked {
-            background: linear-gradient(135deg, #e879f9, #818cf8);
+            background: linear-gradient(135deg, var(--rose), var(--taupe));
             border-color: transparent;
             color: white;
         }
@@ -213,7 +237,7 @@
 
         .task-text.done {
             text-decoration: line-through;
-            color: #94a3b8;
+            color: var(--steel);
         }
 
         .task-meta {
@@ -250,7 +274,7 @@
 
         .due-date {
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: var(--steel);
         }
 
         /* ── Action buttons ── */
@@ -276,12 +300,12 @@
         }
 
         a.edit {
-            background: #ede9fe;
-            color: #7c3aed;
+            background: #f7e4e6;
+            color: var(--rose);
         }
 
         a.edit:hover {
-            background: #7c3aed;
+            background: var(--rose);
             color: white;
             transform: scale(1.1);
         }
@@ -319,8 +343,8 @@
         }
 
         a.cancel {
-            background: #f1f5f9;
-            color: #64748b;
+            background: var(--slate);
+            color: var(--taupe);
             border-radius: 50%;
             width: 28px;
             height: 28px;
@@ -334,7 +358,8 @@
         }
 
         a.cancel:hover {
-            background: #e2e8f0;
+            background: var(--steel);
+            color: white;
         }
 
         /* ── Subtasks ── */
@@ -348,7 +373,7 @@
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            color: #64748b;
+            color: var(--taupe);
             padding: 4px 0;
             border-bottom: 1px solid #f1f5f9;
         }
@@ -399,7 +424,7 @@
             padding: 5px 10px;
             font-size: 12px;
             border-radius: 50px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--slate);
         }
 
         .add-subtask-form button {
@@ -413,13 +438,13 @@
         .count {
             text-align: center;
             font-size: 0.85rem;
-            color: #94a3b8;
+            color: var(--steel);
             margin-bottom: 14px;
         }
 
         .empty {
             text-align: center;
-            color: #94a3b8;
+            color: var(--steel);
             font-size: 1rem;
             padding: 24px 0;
         }
@@ -429,6 +454,88 @@
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
+
+        /* ── Week strip ── */
+        .week-strip {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .week-day {
+            width: 44px;
+            height: 56px;
+            border-radius: 12px;
+            background: white;
+            border: 2px solid var(--slate);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #1e293b;
+            font-size: 0.95rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .week-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .week-day.sel {
+            background: linear-gradient(135deg, var(--rose), var(--taupe));
+            border-color: transparent;
+            color: white;
+        }
+
+        .week-day.is-today:not(.sel) {
+            border-color: var(--rose);
+        }
+
+        .week-lbl {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .month-toggle {
+            display: block;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--rose);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .month-toggle:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Priority sections ── */
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--taupe);
+            margin: 14px 0 8px;
+        }
+
+        .date-filter-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f7e4e6;
+            color: var(--taupe);
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 
@@ -436,6 +543,23 @@
     <div class="card">
         <h1>My To-Do List</h1>
         <p class="subtitle">Stay on top of your day!</p>
+
+        <div class="week-strip">
+            {% for day in week_days %}
+            <a class="week-day {% if day == selected_date %}sel{% endif %} {% if day == today %}is-today{% endif %}"
+                href="/?date={{ day.isoformat() }}">
+                <span class="week-lbl">{{ day.strftime('%a') }}</span>{{ day.day }}
+            </a>
+            {% endfor %}
+        </div>
+        <a class="month-toggle" href="/calendar">▾ view full month</a>
+
+        {% if date_filter %}
+        <div class="date-filter-banner">
+            <span>📅 Showing tasks for {{ date_filter }}</span>
+            <a class="cancel" href="/" title="Clear date filter">✕</a>
+        </div>
+        {% endif %}
 
         <form action="/add" method="POST">
             <div class="form-main">
@@ -448,7 +572,7 @@
                     <option value="medium" selected>🟡 Medium</option>
                     <option value="high">🔴 High</option>
                 </select>
-                <input type="date" name="due_date">
+                <input type="date" name="due_date" value="{{ date_filter }}">
             </div>
         </form>
 
@@ -462,9 +586,12 @@
         {% if tasks %}
         {% set done_count = tasks | selectattr("done") | list | length %}
         <p class="count">{{ tasks|length - done_count }} pending · {{ done_count }} done</p>
+        {% set emojis = ['🌸', '⚡', '🎯', '🚀', '🌟'] %}
+        {% for level, label, emoji in [("high", "High priority", "🔴"), ("medium", "Medium priority", "🟡"), ("low", "Low priority", "🟢")] %}
+        {% if tasks_by_priority[level] %}
+        <h3 class="section-label">{{ emoji }} {{ label }}</h3>
         <ul>
-            {% set emojis = ['🌸', '⚡', '🎯', '🚀', '🌟'] %}
-            {% for task in tasks %}
+            {% for task in tasks_by_priority[level] %}
             <li class="priority-{{ task.priority }}">
 
                 <!-- Main task row -->
@@ -519,11 +646,16 @@
             </li>
             {% endfor %}
         </ul>
+        {% endif %}
+        {% endfor %}
         {% else %}
         <div class="empty">
             {% if query %}
             <span>🔍</span>
             No tasks match "{{ query }}"
+            {% elif date_filter %}
+            <span>📅</span>
+            No tasks for {{ date_filter }} — add one above!
             {% else %}
             <span>🎉</span>
             Nothing to do yet — add your first task!

@@ -1,6 +1,8 @@
 import sqlite3
 import os
 import json
+import calendar
+from datetime import date, timedelta
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
@@ -51,11 +53,23 @@ def serialize_subtasks(subtasks):
 def index():
     edit_id = request.args.get("edit", type=int, default=-1)
     query = request.args.get("q", "").strip()
+    date_filter = request.args.get("date", "").strip()
+
+    today = date.today()
+    selected_date = date.fromisoformat(date_filter) if date_filter else today
+    week_start = selected_date - timedelta(days=(selected_date.isoweekday() % 7))
+    week_days = [week_start + timedelta(days=i) for i in range(7)]
+
     with get_db() as conn:
         if query:
             task_rows = conn.execute(
                 "SELECT * FROM tasks WHERE text LIKE ? ORDER BY id",
                 (f"%{query}%",)
+            ).fetchall()
+        elif date_filter:
+            task_rows = conn.execute(
+                "SELECT * FROM tasks WHERE due_date = ? ORDER BY id",
+                (date_filter,)
             ).fetchall()
         else:
             task_rows = conn.execute("SELECT * FROM tasks ORDER BY id").fetchall()
@@ -64,7 +78,62 @@ def index():
             task_dict = dict(row)
             task_dict["subtasks"] = parse_subtasks(task_dict["subtasks"])
             tasks.append(task_dict)
-    return render_template("index.html", tasks=tasks, edit_id=edit_id, query=query)
+
+    tasks_by_priority = {
+        "high": [t for t in tasks if t["priority"] == "high"],
+        "medium": [t for t in tasks if t["priority"] == "medium"],
+        "low": [t for t in tasks if t["priority"] == "low"],
+    }
+
+    return render_template(
+        "index.html", tasks=tasks, tasks_by_priority=tasks_by_priority,
+        edit_id=edit_id, query=query, date_filter=date_filter,
+        week_days=week_days, today=today, selected_date=selected_date,
+    )
+
+
+@app.route("/calendar")
+def calendar_view():
+    today = date.today()
+    year = request.args.get("year", type=int, default=today.year)
+    month = request.args.get("month", type=int, default=today.month)
+
+    if month < 1:
+        year, month = year - 1, 12
+    elif month > 12:
+        year, month = year + 1, 1
+
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT due_date, COUNT(*) AS count FROM tasks WHERE due_date != '' GROUP BY due_date"
+        ).fetchall()
+    task_counts = {row["due_date"]: row["count"] for row in rows}
+
+    cal = calendar.Calendar(firstweekday=6)  # weeks start on Sunday
+    weeks = []
+    for week in cal.monthdatescalendar(year, month):
+        weeks.append([
+            {
+                "day": day.day,
+                "date": day.isoformat(),
+                "in_month": day.month == month,
+                "is_today": day == today,
+                "count": task_counts.get(day.isoformat(), 0),
+            }
+            for day in week
+        ])
+
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+    return render_template(
+        "calendar.html",
+        weeks=weeks,
+        month_name=calendar.month_name[month],
+        year=year,
+        prev_year=prev_year, prev_month=prev_month,
+        next_year=next_year, next_month=next_month,
+    )
 
 
 @app.route("/add", methods=["POST"])

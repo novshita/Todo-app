@@ -550,6 +550,8 @@
         {% endif %}
 
         <form action="/add" method="POST">
+            <input type="hidden" name="date_filter" value="{{ date_filter }}">
+            <input type="hidden" name="query" value="{{ query }}">
             <div class="form-main">
                 <input type="text" name="task" placeholder="What needs to be done?" required>
                 <button type="submit">Add</button>
@@ -584,14 +586,17 @@
 
                 <!-- Main task row -->
                 <div class="task-row">
-                    <a class="toggle {% if task.done %}checked{% endif %}" href="/toggle/{{ task.id }}"
+                    <a class="toggle {% if task.done %}checked{% endif %}"
+                        href="/toggle/{{ task.id }}?date={{ date_filter }}&q={{ query }}"
                         title="Mark complete">✓</a>
 
                     {% if edit_id == task.id %}
                     <form class="edit-form" action="/edit/{{ task.id }}" method="POST">
+                        <input type="hidden" name="date_filter" value="{{ date_filter }}">
+                        <input type="hidden" name="query" value="{{ query }}">
                         <input type="text" name="text" value="{{ task.text }}" required autofocus>
                         <button type="submit" class="btn-save">Save</button>
-                        <a class="cancel" href="/{% if query %}?q={{ query }}{% endif %}" title="Cancel">✕</a>
+                        <a class="cancel" href="/?date={{ date_filter }}&q={{ query }}" title="Cancel">✕</a>
                     </form>
                     {% else %}
                     <div class="task-body">
@@ -606,8 +611,8 @@
                         </div>
                     </div>
                     <div class="actions">
-                        <a class="edit" href="/?edit={{ task.id }}{% if query %}&q={{ query }}{% endif %}" title="Edit">✎</a>
-                        <a class="delete" href="/delete/{{ task.id }}" title="Delete">✕</a>
+                        <a class="edit" href="/?edit={{ task.id }}&date={{ date_filter }}&q={{ query }}" title="Edit">✎</a>
+                        <a class="delete" href="/delete/{{ task.id }}?date={{ date_filter }}&q={{ query }}" title="Delete">✕</a>
                     </div>
                     {% endif %}
                 </div>
@@ -618,15 +623,17 @@
                     {% for subtask in task.subtasks %}
                     <div class="subtask">
                         <a class="toggle {% if subtask.done %}checked{% endif %}"
-                            href="/toggle-subtask/{{ task.id }}/{{ subtask.id }}" title="Mark complete">✓</a>
+                            href="/toggle-subtask/{{ task.id }}/{{ subtask.id }}?date={{ date_filter }}&q={{ query }}" title="Mark complete">✓</a>
                         <span class="subtask-text {% if subtask.done %}done{% endif %}">{{ subtask.text }}</span>
-                        <a class="delete" href="/delete-subtask/{{ task.id }}/{{ subtask.id }}" title="Delete">✕</a>
+                        <a class="delete" href="/delete-subtask/{{ task.id }}/{{ subtask.id }}?date={{ date_filter }}&q={{ query }}" title="Delete">✕</a>
                     </div>
                     {% endfor %}
                 </div>
                 {% endif %}
 
                 <form class="add-subtask-form" action="/add-subtask/{{ task.id }}" method="POST">
+                    <input type="hidden" name="date_filter" value="{{ date_filter }}">
+                    <input type="hidden" name="query" value="{{ query }}">
                     <input type="text" name="subtask_text" placeholder="+ Add a subtask...">
                     <button type="submit">Add</button>
                 </form>

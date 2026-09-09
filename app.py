@@ -21,18 +21,28 @@ def init_db():
     with get_db() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS tasks (
-                id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                text     TEXT    NOT NULL,
-                done     INTEGER NOT NULL DEFAULT 0,
-                priority TEXT    NOT NULL DEFAULT 'medium',
-                due_date TEXT             DEFAULT '',
-                subtasks TEXT             DEFAULT '[]'
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                text         TEXT    NOT NULL,
+                done         INTEGER NOT NULL DEFAULT 0,
+                priority     TEXT    NOT NULL DEFAULT 'medium',
+                due_date     TEXT             DEFAULT '',
+                subtasks     TEXT             DEFAULT '[]',
+                created_date TEXT    NOT NULL DEFAULT ''
             )
         """)
-        # migrate: add subtasks column if upgrading from an older DB
+        # migrate: add subtasks/created_date columns if upgrading from an older DB
         cols = [r[1] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()]
         if "subtasks" not in cols:
             conn.execute("ALTER TABLE tasks ADD COLUMN subtasks TEXT DEFAULT '[]'")
+        if "created_date" not in cols:
+            conn.execute("ALTER TABLE tasks ADD COLUMN created_date TEXT NOT NULL DEFAULT ''")
+            # backfill: real creation date is unknown for pre-existing rows,
+            # so keep them where the old due-date-based filter used to show them
+            conn.execute("""
+                UPDATE tasks
+                SET created_date = CASE WHEN due_date != '' THEN due_date ELSE ? END
+                WHERE created_date = ''
+            """, (date.today().isoformat(),))
 
 
 init_db()
@@ -68,7 +78,7 @@ def index():
             ).fetchall()
         elif date_filter:
             task_rows = conn.execute(
-                "SELECT * FROM tasks WHERE due_date = ? ORDER BY id",
+                "SELECT * FROM tasks WHERE created_date = ? ORDER BY id",
                 (date_filter,)
             ).fetchall()
         else:
@@ -105,9 +115,9 @@ def calendar_view():
 
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT due_date, COUNT(*) AS count FROM tasks WHERE due_date != '' GROUP BY due_date"
+            "SELECT created_date, COUNT(*) AS count FROM tasks WHERE created_date != '' GROUP BY created_date"
         ).fetchall()
-    task_counts = {row["due_date"]: row["count"] for row in rows}
+    task_counts = {row["created_date"]: row["count"] for row in rows}
 
     cal = calendar.Calendar(firstweekday=6)  # weeks start on Sunday
     weeks = []
@@ -136,6 +146,14 @@ def calendar_view():
     )
 
 
+def redirect_to_index():
+    date_filter = (request.values.get("date_filter")
+                   or request.values.get("date", "")).strip()
+    query = (request.values.get("query")
+             or request.values.get("q", "")).strip()
+    return redirect(url_for("index", date=date_filter or None, q=query or None))
+
+
 @app.route("/add", methods=["POST"])
 def add():
     task = request.form.get("task")
@@ -144,10 +162,10 @@ def add():
     if task:
         with get_db() as conn:
             conn.execute(
-                "INSERT INTO tasks (text, priority, due_date, subtasks) VALUES (?, ?, ?, ?)",
-                (task, priority, due_date, "[]")
+                "INSERT INTO tasks (text, priority, due_date, subtasks, created_date) VALUES (?, ?, ?, ?, ?)",
+                (task, priority, due_date, "[]", date.today().isoformat())
             )
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/edit/<int:task_id>", methods=["POST"])
@@ -157,7 +175,7 @@ def edit(task_id):
         with get_db() as conn:
             conn.execute("UPDATE tasks SET text = ? WHERE id = ?",
                          (new_text, task_id))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/toggle/<int:task_id>")
@@ -165,14 +183,14 @@ def toggle(task_id):
     with get_db() as conn:
         conn.execute(
             "UPDATE tasks SET done = NOT done WHERE id = ?", (task_id,))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/delete/<int:task_id>")
 def delete(task_id):
     with get_db() as conn:
         conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/add-subtask/<int:task_id>", methods=["POST"])
@@ -189,7 +207,7 @@ def add_subtask(task_id):
                     {"id": new_id, "text": subtask_text, "done": False})
                 conn.execute("UPDATE tasks SET subtasks = ? WHERE id = ?",
                              (serialize_subtasks(subtasks), task_id))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/toggle-subtask/<int:task_id>/<int:subtask_id>")
@@ -205,7 +223,7 @@ def toggle_subtask(task_id, subtask_id):
                     break
             conn.execute("UPDATE tasks SET subtasks = ? WHERE id = ?",
                          (serialize_subtasks(subtasks), task_id))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 @app.route("/delete-subtask/<int:task_id>/<int:subtask_id>")
@@ -218,7 +236,7 @@ def delete_subtask(task_id, subtask_id):
             subtasks = [s for s in subtasks if s["id"] != subtask_id]
             conn.execute("UPDATE tasks SET subtasks = ? WHERE id = ?",
                          (serialize_subtasks(subtasks), task_id))
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 
 if __name__ == "__main__":
